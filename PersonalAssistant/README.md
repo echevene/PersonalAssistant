@@ -91,9 +91,9 @@ This Personal Assistant does **not** store or replace your email app. Instead, i
 ## 🛠️ Development
 
 ### Technology Stack
-- **Backend**: .NET 8 Web API with PostgreSQL (read-only email processing)
-- **AI**: Google Gemini API for content analysis and insights
-- **Mobile**: Flutter dashboard app (Android-first)
+- **Backend**: .NET 8.0.2 LTS Web API with PostgreSQL 16 (read-only email processing)
+- **AI**: Google Gemini API for content analysis and insights (LTS-compatible)
+- **Mobile**: Flutter 3.38.6 dashboard app (Android-first)
 - **Automation**: n8n workflows for email processing
 - **Infrastructure**: Kubernetes on Proxmox with Ceph storage
 - **Authentication**: OAuth2 with read-only scopes
