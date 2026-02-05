@@ -1,0 +1,112 @@
+name: Mobile CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: [ 'lib/**', 'test/**' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.13.x'
+          channel: 'stable'
+          
+      - name: Cache Flutter Dependencies
+        uses: actions/cache@v3
+        with:
+          path: /opt/hostedtoolcache/flutter
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+            
+      - name: Install Dependencies
+        run: |
+          flutter pub get
+          flutter pub run build_runner build
+          
+      - name: Run Tests
+        run: |
+          flutter test --coverage
+          flutter test --coverage --merge-coverage
+          
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: test/
+          
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage/
+          
+      - name: Static Analysis
+        run: |
+          flutter analyze --fatal-infos --fatal-warnings
+          
+  build-android:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.13.x'
+          channel: 'stable'
+          
+      - name: Build APK
+        run: |
+          flutter pub get
+          flutter build apk --release --split-debug-info --build-number=${{ github.run_number }}
+          
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/
+          retention-days: 30
+          
+      - name: Get APK Path
+        id: apk-path
+        run: |
+          APK_PATH=$(find build/app/outputs/flutter-apk -name "*.apk" | head -1)
+          echo "apk-path=$APK_PATH" >> $GITHUB_OUTPUT
+          
+  distribute-android:
+    needs: build-android
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v3
+        with:
+          name: android-apk
+          
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: 'latest'
+          service_account_key: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          
+      - name: Upload to Google Play Internal
+        run: |
+          gcloud config set project personal-assistant-app
+          gcloud app deploy build/app/outputs/flutter-apk/*.apk

@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: personal-assistant-api
+  labels:
+    app: personal-assistant-api
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: personal-assistant-api
+  template:
+    metadata:
+      labels:
+        app: personal-assistant-api
+        version: v1
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/echevene/personal-assistant-api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: db-connection-string
+        - name: Gemini__ApiKey
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: gemini-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: personal-assistant-api-service
+  labels:
+    app: personal-assistant-api
+spec:
+  selector:
+    app: personal-assistant-api
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: personal-assistant-api-external
+  annotations:
+    traefik.ingress.kubernetes.io/router: personal-assistant-api
+spec:
+  selector:
+    app: personal-assistant-api
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  type: LoadBalancer
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: personal-assistant-api-route
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`api.enevation.org`)
+    kind: Rule
+    services:
+    - name: personal-assistant-api-service
+      port: 80
+  middlewares:
+    - name: headers
+      namespace: default
+  tls:
+    secretName: api-tls

@@ -1,0 +1,145 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: [ 'src/**', 'test/**' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: personal-assistant-api
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    outputs:
+      coverage-file: ${{ steps.coverage.outputs.coverage-file }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+          
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+            
+      - name: Restore dependencies
+        run: dotnet restore src/PersonalAssistant.Api/PersonalAssistant.Api.csproj
+        
+      - name: Build
+        run: dotnet build src/PersonalAssistant.Api/PersonalAssistant.Api.csproj --no-restore --configuration Release
+        
+      - name: Run Tests
+        run: |
+          dotnet test test/PersonalAssistant.Tests/PersonalAssistant.Tests.csproj --no-build --configuration Release \
+            --logger "trx;LogFilePath=test-results" \
+            --collect:"XPlat Code Coverage"
+            
+      - name: Process Coverage
+        id: coverage
+        run: |
+          # Convert coverage to lcov format
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          dotnet-reportgenerator -reports:./test/**/coverage.cobertura.xml -targetdir:./coverage -reporttypes:lcov
+          echo "coverage-file=coverage/lcov.info" >> $GITHUB_OUTPUT
+          
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+          
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ${{ steps.coverage.outputs.coverage-file }}
+          flags: unittests
+          name: codecov-umbrella
+          
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: csharp
+          
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+        
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:cpp"
+          
+  build-and-deploy:
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+          
+      - name: Publish
+        run: dotnet publish src/PersonalAssistant.Api/PersonalAssistant.Api.csproj -c Release -o publish --self-contained false --runtime linux-x64
+        
+      - name: Log in to Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch,suffix={{branch}}
+            type=ref,event=pr,suffix={{pr}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./publish
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          
+      - name: Deploy to Kubernetes
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          
+          # Update deployment with new image
+          kubectl set image deployment/personal-assistant-api api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          
+          # Wait for rollout to complete
+          kubectl rollout status deployment/personal-assistant-api --timeout=300s
+          
+          # Check deployment health
+          kubectl get pods -l app=personal-assistant-api

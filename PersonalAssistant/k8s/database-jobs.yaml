@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration-{{ .Release.Revision }}
+  labels:
+    app: personal-assistant-migration
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: personal-assistant-migration
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: migration
+        image: ghcr.io/echevene/personal-assistant-api:{{ .Release.ImageTag }}
+        imagePullPolicy: Always
+        command: ["dotnet", "PersonalAssistant.Api.dll"]
+        args: ["--migrate"]
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: db-connection-string
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+  ttlSecondsAfterFinished: 300
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup
+  labels:
+    app: personal-assistant-backup
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: ghcr.io/echevene/personal-assistant-api:{{ .Release.ImageTag }}
+            command: ["dotnet", "PersonalAssistant.Api.dll"]
+            args: ["--backup"]
+            env:
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: db-connection-string
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "250m"
