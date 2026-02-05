@@ -1,0 +1,56 @@
+COOP SENTINEL Project Detailed Technical Notes
+Internal Project Name: CoopSentinel
+
+I. Market Strategy & Requirements
+Product: AI-Integrated Chicken Coop Automation System Kit.
+
+Target Price: $499 (Premium Segment).
+
+Revenue Model: Hardware Sale + $7.99/month Subscription for AI/Cloud features. This is critical for driving long-term ROI.
+
+Key Features (MVP): Door Control, Temperature/Humidity Monitoring, Automated Fan Control.
+
+II. Minimum Viable Product (MVP) - Technical Components
+The MVP will utilize a hybrid architecture powered by solar energy.
+
+A. Existing Components (Provided by Developer)
+High-Level Controller: Raspberry Pi 4 Model B (Runs the MQTT Broker and application logic).
+
+Low-Level Controller: ESP-WROOM-32 (Runs low-power control and sensor polling).
+
+Sensor: BME280 (Temperature, Humidity, Pressure).
+
+Actuator: Existing motorized door mechanism (to be modified).
+
+Power: Two Solar Panels.
+
+B. Remaining Components to Purchase (MVP BOM)
+Motor Control: Motor Driver (H-Bridge) for 12V motor.
+
+Climate Control: 12V DC IP65-rated Fan and a Relay Module.
+
+Power Integration: 12V Battery, Solar Charge Controller, and 12V to 5V DC-DC Buck Converter (to power the R-Pi).
+
+Enclosure: IP65-rated weatherproof enclosure and limit switches.
+
+III. Software Architecture & Power Management
+The primary technical challenge is minimizing the constant power draw of the Raspberry Pi 4 for solar operation, while maximizing the ESP32's Deep Sleep mode.
+
+A. Power Optimization (Raspberry Pi 4)
+The R-Pi is the primary power consumer (≈2.7W to 3.5W idle).
+
+Techniques: Disable unused hardware interfaces (HDMI, USB, Wi-Fi/BT if using Ethernet), disable onboard LEDs, underclock the CPU, and use a minimal OS (Raspberry Pi OS Lite or DietPi).
+
+Goal: Reduce constant current draw from ∼700mA to the lowest achievable level.
+
+B. ESP32 Low-Power Communication with MQTT
+The ESP32 is the power-optimized client, using MQTT to communicate with the Mosquitto broker on the R-Pi.
+
+Protocol: MQTT (Message Queuing Telemetry Transport).
+
+Low-Power Mode: Timed Deep Sleep is mandatory. The ESP32 wakes, connects, publishes status (e.g., coopsentinel/status/temp), checks for retained commands, executes motor/relay logic, then disconnects and returns to Deep Sleep.
+
+Retained Commands: The R-Pi must use the Retain Flag when sending commands (e.g., coopsentinel/cmd/door/set) so the command is available the next time the ESP32 wakes up and subscribes.
+
+IV. Next Development Focus
+The next logical step is to tackle the software implementation details for power efficiency.
