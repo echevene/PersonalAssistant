@@ -123,6 +123,18 @@ Your development environment is now **fully automated**. With 5 hours/week:
 - **Database Problems**: Check PostgreSQL container logs
 - **API Issues**: Review health endpoint output
 
+### Branch Management
+- **Feature Branches**: `feature/<user-story>` for isolated development
+- **Sprint Branches**: `sprint-X` for grouping related features
+- **Automated Cleanup**: Delete merged branches via GitHub Actions
+- [Full Branching Strategy](https://github.com/echevene/PersonalAssistant/blob/main/doc/devops/branching-strategy.md)
+
+### Git Aliases & Scripts
+- **Session Tracking**: `pa-session` for commit management
+- **Branch Creation**: `pa-branch` for feature branches
+- **Merging**: `pa-merge` for completed features
+- **Status Tracking**: GitHub Actions for branch/issue status
+
 ---
 
-This CI/CD pipeline maximizes your limited development time by handling all operational tasks automatically. Focus 100% of your 5 hours on feature development!
+This CI/CD pipeline maximizes your limited development time by handling all operational tasks automatically. Focus 100% of your 5 hours on feature development with minimal context switching!

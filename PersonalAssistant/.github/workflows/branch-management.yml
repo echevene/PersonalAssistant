@@ -1,0 +1,121 @@
+name: Branch Management
+
+on:
+  pull_request:
+    types: [opened, closed]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'cleanup'
+        type: choice
+        options:
+        - cleanup
+        - status
+
+jobs:
+  cleanup-branches:
+    if: github.event.pull_request.merged == true || github.event.inputs.action == 'cleanup'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Delete merged feature branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get merged branch name
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BRANCH="${{ github.event.pull_request.head.ref }}"
+          else
+            BRANCH="${{ github.event.inputs.branch }}"
+          fi
+          
+          # Delete feature branch if it was merged
+          if [[ "$BRANCH" == feature/* ]]; then
+            echo "Deleting merged feature branch: $BRANCH"
+            git push origin --delete $BRANCH
+          fi
+          
+      - name: Cleanup stale branches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Fetch all branches
+          git fetch --all --prune
+          
+          # Delete branches merged to main/develop
+          for branch in $(git branch --remote --merged | grep -v main | grep -v develop); do
+            if [[ "$branch" == feature/* ]]; then
+              echo "Deleting stale feature branch: $branch"
+              git push origin --delete $branch
+            fi
+          done
+          
+  update-issue-status:
+    if: github.event.inputs.action == 'status'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      
+    steps:
+      - name: Update issue labels
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueNumber = process.env.ISSUE_NUMBER || 23;
+            const status = process.env.STATUS || 'in-progress';
+            
+            // Remove existing status labels
+            const labels = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+            
+            const statusLabels = labels.data.filter(label => 
+              label.name.includes('todo') || 
+              label.name.includes('in-progress') || 
+              label.name.includes('done')
+            );
+            
+            // Remove status labels
+            for (const label of statusLabels) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                name: label.name
+              });
+            }
+            
+            // Add new status label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: [status]
+            });
+        env:
+          ISSUE_NUMBER: ${{ github.event.inputs.issue }}
+          STATUS: ${{ github.event.inputs.status }}
+          
+  branch-status:
+    if: github.event.inputs.action == 'status'
+    runs-on: ubuntu-latest
+    outputs:
+      summary: ${{ steps.branch-summary.outputs.result }}
+      
+    steps:
+      - name: Generate branch status
+        id: branch-summary
+        run: |
+          echo "result={\"branch\": \"$(git branch --show-current)\", \"updated\": \"$(date)\", \"sprint\": \"$(git branch --show-current | grep -o 'sprint-[0-9]*' || echo 'none')\"}" >> $GITHUB_OUTPUT
