@@ -1,7 +1,7 @@
 # Personal Assistant - Project Overview
 
 ## Project Vision
-Create an intelligent personal assistant that helps users manage their digital communications and schedule with AI-powered automation, accessible through cross-platform applications.
+Create an intelligent personal assistant that **enhances existing email apps** with AI-powered insights and automation, focusing on read-only processing, dashboard analytics, and intelligent prioritization.
 
 ## Project Goals
 1. **Primary**: Simplify management of emails, calls, and appointments
@@ -56,23 +56,28 @@ Create an intelligent personal assistant that helps users manage their digital c
 - **Documentation**: Complete requirements, architecture, and design
 - **Next Step**: Begin Sprint 1 implementation
 
-### Sprint 1: Foundation
-1. ✅ Connect Gmail Account - [Issue #1](https://github.com/echevene/PersonalAssistant/issues/1)
-2. ✅ Connect Outlook Account - [Issue #2](https://github.com/echevene/PersonalAssistant/issues/2)
-3. ✅ View Connected Accounts - [Issue #3](https://github.com/echevene/PersonalAssistant/issues/3)
+### Read-Only Email Processing Approach
+This Personal Assistant does **not** store or replace your email app. Instead, it:
+- Connects to your email accounts with **read-only access**
+- Processes emails with AI to extract insights
+- Delivers **dashboard, priorities, and automation**
+- Enhances your existing email experience
 
-### Sprint 2: Email Synchronization
-1. ✅ Initial Email Sync - [Issue #4](https://github.com/echevene/PersonalAssistant/issues/4)
-2. ✅ Incremental Email Sync - [Issue #5](https://github.com/echevene/PersonalAssistant/issues/5)
-3. ✅ Manual Sync Trigger - [Issue #6](https://github.com/echevene/PersonalAssistant/issues/6)
+### Sprint 1: Foundation (Updated)
+13. ✅ Connect Gmail Account (Read-Only) - [Issue #13](https://github.com/echevene/PersonalAssistant/issues/13)
+14. ✅ Connect Outlook Account (Read-Only) - [Issue #14](https://github.com/echevene/PersonalAssistant/issues/14)
+15. ✅ Configure Processing Rules - [Issue #15](https://github.com/echevene/PersonalAssistant/issues/15)
 
-### Sprint 3: AI Integration & Dashboard
-1. ✅ Email Categorization - [Issue #7](https://github.com/echevene/PersonalAssistant/issues/7)
-2. ✅ Email Summarization - [Issue #8](https://github.com/echevene/PersonalAssistant/issues/8)
-3. ✅ Smart Reply Suggestions - [Issue #9](https://github.com/echevene/PersonalAssistant/issues/9)
-4. ✅ Unified Inbox View - [Issue #10](https://github.com/echevene/PersonalAssistant/issues/10)
-5. ✅ Communication Search - [Issue #11](https://github.com/echevene/PersonalAssistant/issues/11)
-6. ✅ Email Actions - [Issue #12](https://github.com/echevene/PersonalAssistant/issues/12)
+### Sprint 2: Email Analysis & Prioritization
+16. ✅ Email Content Analysis - [Issue #16](https://github.com/echevene/PersonalAssistant/issues/16)
+17. ✅ Email Prioritization - [Issue #17](https://github.com/echevene/PersonalAssistant/issues/17)
+18. ✅ Action Items Extraction - [Issue #18](https://github.com/echevene/PersonalAssistant/issues/18)
+
+### Sprint 3: Dashboard & Automation
+19. ✅ Insights Dashboard - [Issue #19](https://github.com/echevene/PersonalAssistant/issues/19)
+20. ✅ Auto-Response Configuration - [Issue #20](https://github.com/echevene/PersonalAssistant/issues/20)
+21. ✅ Meeting Scheduling Assistant - [Issue #21](https://github.com/echevene/PersonalAssistant/issues/21)
+22. ✅ Contact Relationship Management - [Issue #22](https://github.com/echevene/PersonalAssistant/issues/22)
 
 ## 📚 Documentation
 
@@ -86,12 +91,12 @@ Create an intelligent personal assistant that helps users manage their digital c
 ## 🛠️ Development
 
 ### Technology Stack
-- **Backend**: .NET 8 Web API with PostgreSQL
-- **AI**: Google Gemini API integration
-- **Mobile**: Flutter (Android-first)
-- **Automation**: n8n workflows
+- **Backend**: .NET 8 Web API with PostgreSQL (read-only email processing)
+- **AI**: Google Gemini API for content analysis and insights
+- **Mobile**: Flutter dashboard app (Android-first)
+- **Automation**: n8n workflows for email processing
 - **Infrastructure**: Kubernetes on Proxmox with Ceph storage
-- **Authentication**: OAuth2 for email providers
+- **Authentication**: OAuth2 with read-only scopes
 
 ### Getting Started
 1. Clone the repository: `git clone https://github.com/echevene/PersonalAssistant.git`

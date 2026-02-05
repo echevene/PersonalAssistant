@@ -4,25 +4,27 @@
 
 ### 1.1 Email Account Management (FR-001)
 **Priority**: High  
-**Description**: User must be able to connect and manage multiple email accounts
+**Description**: User must be able to connect to multiple email accounts with read-only access
 
 **Acceptance Criteria:**
-- User can authenticate with Gmail using OAuth2
-- User can authenticate with Outlook using OAuth2
+- User can authenticate with Gmail using OAuth2 with read-only scope
+- User can authenticate with Outlook using OAuth2 with read-only scope
 - User can connect multiple accounts of each type
-- System displays sync status for each account
+- System displays processing status for each account
 - User can disconnect accounts at any time
+- System explicitly requests read-only permissions (no compose/delete access)
 
-### 1.2 Email Fetching and Sync (FR-002)
+### 1.2 Email Processing and Analysis (FR-002)
 **Priority**: High  
-**Description**: System must fetch and synchronize emails from connected accounts
+**Description**: System must read and analyze emails without storing content
 
 **Acceptance Criteria:**
-- Emails are fetched within 5 minutes of arrival
-- Email metadata (subject, sender, date) is stored locally
-- System handles large email volumes (>10,000 emails)
-- Sync can be triggered manually or scheduled
-- Incremental syncs minimize data transfer
+- Emails are processed within 5 minutes of arrival
+- AI analyzes emails for content, sentiment, and action items
+- System handles large email volumes (>10,000 emails) efficiently
+- Processing can be triggered manually or scheduled
+- No email content is permanently stored in the system
+- Processing history is maintained for insights
 
 ### 1.3 AI-Powered Email Processing (FR-003)
 **Priority**: High  
@@ -35,36 +37,49 @@
 - AI learns from user corrections
 - Processing completes within 30 seconds per email
 
-### 1.4 Email Dashboard (FR-004)
+### 1.4 Insights Dashboard (FR-004)
 **Priority**: High  
-**Description**: User must have a unified view of all emails
+**Description**: User must have a dashboard showing email insights and priorities
 
 **Acceptance Criteria:**
-- Unified inbox displays emails from all accounts
-- Emails are sortable by date, sender, priority
-- Search works across all accounts
-- User can apply filters and labels
-- Performance remains responsive with 1000+ emails
+- Dashboard displays email statistics and trends
+- Prioritized list of important emails and action items
+- Visual representation of email categories and volume
+- Search across processed email metadata
+- Performance remains responsive with 1000+ emails in history
 
-### 1.5 Offline Mode (FR-005)
+### 1.5 Auto-Response System (FR-005)
+**Priority**: High  
+**Description**: System can auto-respond to certain emails with user confirmation
+
+**Acceptance Criteria:**
+- User can configure auto-response rules for specific email types
+- AI generates appropriate responses based on email content
+- User reviews and confirms all auto-responses before sending
+- Auto-responses maintain appropriate tone and context
+- System learns from user approval/rejection patterns
+
+### 1.6 Meeting Scheduling (FR-006)
+**Priority**: High  
+**Description**: System can schedule meetings based on email content
+
+**Acceptance Criteria:**
+- AI extracts meeting details from email content
+- System suggests optimal meeting times based on calendar
+- User confirms meeting invitations before sending
+- Calendar integration for conflict checking
+- Follow-up reminders scheduled automatically
+
+### 1.7 Contact Relationship Management (FR-007)
 **Priority**: Medium  
-**Description**: Application must function without internet connectivity
+**Description**: System extracts and manages contact relationships
 
 **Acceptance Criteria:**
-- Recently accessed emails are available offline
-- User can compose emails offline (queued for sync)
-- Changes sync when connection is restored
-- Offline mode clearly indicated in UI
-
-### 1.6 Email Actions (FR-006)
-**Priority**: High  
-**Description**: User must perform standard email actions
-
-**Acceptance Criteria:**
-- Reply, forward, delete, archive emails
-- Mark as read/unread, star/unstar
-- Move to folders/labels
-- Compose new emails with rich text
+- AI identifies and categorizes contact relationships
+- Relationship strength calculated from communication patterns
+- Contact importance scores displayed in dashboard
+- Communication history summarized per contact
+- User can add relationship notes and tags
 
 ### 1.7 Call Management (FR-007) - Future Phase
 **Priority**: Medium (Future)  
@@ -130,10 +145,11 @@
 ## 3. Data Requirements
 
 ### 3.1 Email Data
-- Store email metadata (not content)
-- Retain emails for 1 year minimum
+- Store only email metadata and insights (no content)
+- Retain processing results for 1 year minimum
 - User-controlled deletion options
 - GDPR compliance for personal data
+- No permanent email content storage
 
 ### 3.2 Call Data (Future)
 - Store call metadata and transcriptions
@@ -153,9 +169,10 @@
 ## 4. Integration Requirements
 
 ### 4.1 Email Providers
-- Gmail API v1 with OAuth2
-- Microsoft Graph API with OAuth2
-- IMAP fallback option
+- Gmail API v1 with OAuth2 (read-only scope)
+- Microsoft Graph API with OAuth2 (read-only scope)
+- Read-only API access with no email storage
+- Label modification permissions for categorization
 
 ### 4.2 AI Services
 - Google Gemini API integration

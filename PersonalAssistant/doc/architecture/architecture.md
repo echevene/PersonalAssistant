@@ -2,64 +2,60 @@
 
 ## System Overview
 
-The Personal Assistant consists of multiple components working together to provide intelligent communication management:
+The Personal Assistant consists of a read-only email processing service that enhances existing email applications with AI-powered insights and automation:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Client Layer                           │
+│                  Existing Email Applications                    │
 ├─────────────────────┬─────────────────────┬───────────────────┤
-│  Flutter Android   │  Future: Flutter    │  Future: Web      │
-│     Application    │     iOS/Desktop     │   Application      │
+│      Gmail App    │  Outlook Mobile   │   Other Clients    │
 └─────────────────────┴─────────────────────┴───────────────────┘
                               │
-                         HTTPS/REST
+                     Read-Only API Access
                               │
 ┌─────────────────────────────────────────────────────────────────┐
-│                      API Gateway                               │
-│                  (Traefik Ingress)                             │
-└─────────────────────────────────────────────────────────────────┘
+│                Personal Assistant Service                      │
+├─────────────────────┬─────────────────┬─────────────────────┤
+│  Email Processing │    AI Analysis   │  Auto-Response      │
+│   (Read-Only)    │    (Gemini)     │   (User Confirmed)   │
+└─────────────────────┴─────────────────┴─────────────────────┘
+                              │
+                      Enhanced Email Experience
                               │
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Service Layer                               │
-├───────────────┬─────────────────┬──────────────────────────────┤
-│  .NET 8 API    │  Authentication │      n8n Workflows         │
-│  (Core Logic)  │    Service      │    (Automation Engine)     │
-└───────────────┴─────────────────┴──────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────────┐
-│                    External Services                           │
-├───────────────┬─────────────────┬──────────────────────────────┤
-│   Gmail API    │  Microsoft      │       Gemini AI             │
-│                │   Graph API     │                             │
-│   Call API     │  Calendar API   │                             │
-└───────────────┴─────────────────┴──────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────────┐
-│                    Data Layer                                  │
-├───────────────┬─────────────────┬──────────────────────────────┤
-│  PostgreSQL    │     Redis        │       Ceph Storage         │
-│   (Primary)    │    (Cache)       │     (Backups/Archive)      │
-└───────────────┴─────────────────┴──────────────────────────────┘
+│                  User Dashboard                              │
+├─────────────────────┬─────────────────┬─────────────────────┤
+│    Insights       │  Action Items   │   Contact Mgmt      │
+│    Dashboard      │  & Priorities   │  & Relationships    │
+└─────────────────────┴─────────────────┴─────────────────────┘
 ```
+
+## Read-Only Processing Architecture
+
+Instead of storing emails, the system:
+1. **Reads** email content via read-only API access
+2. **Processes** with AI to extract insights and action items
+3. **Enhances** existing emails with labels and metadata
+4. **Delivers** processed information to user dashboard
 
 ## Component Architecture
 
-### 1. Client Layer (Flutter Application)
+### 1. Client Layer (Dashboard Application)
 
 **Technology Stack:**
 - Flutter 3.x with Dart
 - Material Design 3 components
 - Provider/Riverpod for state management
 - Dio for HTTP communications
-- SQLite for local storage
-- WorkManager for background tasks
+- SQLite for local insights storage
+- WorkManager for background processing
 
 **Key Responsibilities:**
-- User interface and experience
-- Local data caching and offline support
-- Authentication token management
-- Background synchronization
-- Push notifications
+- Insights and action items dashboard
+- Email statistics and trends visualization
+- Contact relationship management
+- Auto-response review and confirmation
+- Meeting scheduling interface
 
 **Architecture Pattern:**
 ```
