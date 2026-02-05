@@ -17,11 +17,23 @@ else
 fi
 
 # Setup .NET environment
-echo "🔧 Setting up .NET environment..."
+echo "🔧 Setting up .NET 8.0.2 LTS environment..."
 dotnet --version
 if [ $? -ne 0 ]; then
-    echo "❌ .NET not found. Please install .NET 8 SDK"
+    echo "❌ .NET not found. Please install .NET 8.0.2 LTS SDK"
     exit 1
+fi
+
+# Verify correct version
+DOTNET_VERSION=$(dotnet --version | grep -oP '[0-9]\+\.[0-9]\+\.[0-9]\+')
+EXPECTED_VERSION="8.0.2"
+if [ "$DOTNET_VERSION" != "$EXPECTED_VERSION" ]; then
+    echo "⚠️ Warning: .NET version is $DOTNET_VERSION, expected $EXPECTED_VERSION LTS"
+    echo "Please install correct .NET 8.0.2 LTS from https://dotnet.microsoft.com/download/dotnet/"
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    if [[ $REPLY != "y" ]]; then
+        exit 1
+    fi
 fi
 
 # Restore .NET dependencies

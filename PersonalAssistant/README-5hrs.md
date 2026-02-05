@@ -16,7 +16,7 @@ Working with just 5 hours per week requires a strategic approach focused on cons
 ### Sprint 1: Foundation (10 hours / 2 weeks)
 
 #### Week 1 (5 hours)
-- **Session 1 (2 hrs):** Create .NET 8 API Project Structure [Issue #23](https://github.com/echevene/PersonalAssistant/issues/23)
+- **Session 1 (2 hrs):** Create .NET 8.0.2 LTS API Project Structure [Issue #23](https://github.com/echevene/PersonalAssistant/issues/23)
 - **Session 2 (2 hrs):** Set Up PostgreSQL Schema [Issue #24](https://github.com/echevene/PersonalAssistant/issues/24)  
 - **Session 3 (1 hr):** Implement Basic JWT Authentication [Issue #25](https://github.com/echevene/PersonalAssistant/issues/25)
 

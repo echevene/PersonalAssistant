@@ -63,8 +63,8 @@ cd src/PersonalAssistant.App && flutter run
 
 | File | Purpose | Location |
 |-------|----------|----------|
-| Backend CI/CD | Automated testing and deployment | [.github/workflows/backend-ci.yml](https://github.com/echevene/PersonalAssistant/blob/main/.github/workflows/backend-ci.yml) |
-| Mobile CI/CD | Flutter testing and building | [.github/workflows/mobile-ci.yml](https://github.com/echevene/PersonalAssistant/blob/main/.github/workflows/mobile-ci.yml) |
+| Backend CI/CD (.NET 8.0.2 LTS) | Automated testing and deployment | [.github/workflows/backend-ci.yml](https://github.com/echevene/PersonalAssistant/blob/main/.github/workflows/backend-ci.yml) |
+| Mobile CI/CD (Flutter 3.38.6) | Flutter testing and building | [.github/workflows/mobile-ci.yml](https://github.com/echevene/PersonalAssistant/blob/main/.github/workflows/mobile-ci.yml) |
 | Backend Deployment | Kubernetes deployment specs | [k8s/backend-deployment.yaml](https://github.com/echevene/PersonalAssistant/blob/main/k8s/backend-deployment.yaml) |
 | Database Jobs | Migration and backup jobs | [k8s/database-jobs.yaml](https://github.com/echevene/PersonalAssistant/blob/main/k8s/database-jobs.yaml) |
 | Dev Environment | Local development setup | [docker-compose.dev.yml](https://github.com/echevene/PersonalAssistant/blob/main/docker-compose.dev.yml) |

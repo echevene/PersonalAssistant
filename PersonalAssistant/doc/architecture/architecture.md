@@ -87,7 +87,7 @@ flutter_app/
 
 ### 3. Service Layer
 
-#### 3.1 .NET 8 Web API
+#### 3.1 .NET 8.0.2 LTS Web API
 
 **Architecture:**
 ```
